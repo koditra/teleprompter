@@ -3,6 +3,8 @@ const elements = {
     script: document.getElementById('script'),
     viewer: document.getElementById('viewer'),
     font: document.getElementById('font'),
+    speed: document.getElementById('speed'),
+    playScrollBtn: document.getElementById('playScrollBtn'),
     mirrorBtn: document.getElementById('mirrorBtn'),
     cameraBtn: document.getElementById('cameraBtn'),
     closeCamera: document.getElementById('closeCamera'),
@@ -19,6 +21,9 @@ const elements = {
 
 const state = {
     isMirrored: false,
+    isScrolling: false,
+    scrollSpeed: 1.5,
+    scrollAnimationId: null,
     cameraActive: false,
     isRecording: false,
     cameraStream: null,
@@ -30,9 +35,8 @@ const state = {
     latestMp4Url: null
 };
 
-// --- TEXT & PROMPTER LOGIC ---
 function updateScriptText() {
-    elements.script.innerText = elements.input.value || "Your transmission script will appear here.";
+    elements.script.innerText = elements.input.value || "Your script will appear here. Paste your text to begin.";
 }
 
 elements.input.addEventListener('input', updateScriptText);
@@ -44,10 +48,43 @@ elements.font.addEventListener('input', () => {
 elements.mirrorBtn.addEventListener('click', () => {
     state.isMirrored = !state.isMirrored;
     elements.script.style.transform = state.isMirrored ? 'scaleX(-1)' : 'scaleX(1)';
-    elements.mirrorBtn.style.background = state.isMirrored ? '#2a2a4a' : '';
+    elements.mirrorBtn.classList.toggle('active');
 });
 
-// --- CAMERA UI LOGIC ---
+elements.speed.addEventListener('input', () => {
+    state.scrollSpeed = parseFloat(elements.speed.value);
+});
+
+elements.playScrollBtn.addEventListener('click', () => {
+    state.isScrolling = !state.isScrolling;
+    if (state.isScrolling) {
+        elements.playScrollBtn.innerText = "Pause Auto-Scroll";
+        elements.playScrollBtn.classList.add('active');
+        startScrolling();
+    } else {
+        elements.playScrollBtn.innerText = "Start Auto-Scroll";
+        elements.playScrollBtn.classList.remove('active');
+        stopScrolling();
+    }
+});
+
+function startScrolling() {
+    if (!state.isScrolling) return;
+    elements.viewer.scrollTop += state.scrollSpeed;
+    state.scrollAnimationId = requestAnimationFrame(startScrolling);
+}
+
+function stopScrolling() {
+    cancelAnimationFrame(state.scrollAnimationId);
+}
+
+elements.viewer.addEventListener('wheel', () => {
+    if (state.isScrolling) {
+        stopScrolling();
+        setTimeout(() => { if (state.isScrolling) startScrolling(); }, 1000);
+    }
+});
+
 elements.cameraBtn.addEventListener('click', async () => {
     if (state.cameraActive) {
         closeCameraSystem();
@@ -58,13 +95,14 @@ elements.cameraBtn.addEventListener('click', async () => {
         state.cameraStream = new MediaStream(stream.getVideoTracks());
         state.audioStream = new MediaStream(stream.getAudioTracks());
         
-        elements.camera.srcObject = stream; // Preview needs both to monitor
+        elements.camera.srcObject = stream; 
         elements.camera.play();
         elements.cameraWindow.style.display = 'flex';
         state.cameraActive = true;
+        elements.cameraBtn.classList.add('active');
     } catch (err) {
         console.error(err);
-        alert('Optics offline: Could not access webcam/microphone. Ensure permissions are granted.');
+        alert('Camera error: Could not access webcam/microphone. Ensure permissions are granted.');
     }
 });
 
@@ -74,20 +112,19 @@ function closeCameraSystem() {
     elements.cameraWindow.style.display = 'none';
     state.cameraActive = false;
     elements.camera.srcObject = null;
+    elements.cameraBtn.classList.remove('active');
 }
 
 elements.closeCamera.addEventListener('click', closeCameraSystem);
 
-// Window Draggable Logic
 let isDragging = false, dragStartX, dragStartY, initialLeft, initialTop;
 elements.cameraHeader.addEventListener('mousedown', (e) => {
     isDragging = true;
     dragStartX = e.clientX;
     dragStartY = e.clientY;
     const rect = elements.cameraWindow.getBoundingClientRect();
-    const parentRect = elements.viewer.getBoundingClientRect();
-    initialLeft = rect.left - parentRect.left;
-    initialTop = rect.top - parentRect.top;
+    initialLeft = rect.left;
+    initialTop = rect.top;
 });
 
 document.addEventListener('mousemove', (e) => {
@@ -99,7 +136,6 @@ document.addEventListener('mousemove', (e) => {
 });
 document.addEventListener('mouseup', () => isDragging = false);
 
-// Window Resizable Logic
 let isResizing = false, resizeStartX, resizeStartY, initialWidth, initialHeight;
 elements.resizeHandle.addEventListener('mousedown', (e) => {
     isResizing = true;
@@ -119,13 +155,12 @@ document.addEventListener('mousemove', (e) => {
 });
 document.addEventListener('mouseup', () => isResizing = false);
 
-// --- RECORDING LOGIC ---
 function updateRecordingTimer() {
     const now = Date.now();
     const diff = new Date(now - state.recordingStartTime);
     const m = String(diff.getUTCMinutes()).padStart(2, '0');
     const s = String(diff.getUTCSeconds()).padStart(2, '0');
-    elements.recordBtn.innerHTML = `Halt Recording (${m}:${s})`;
+    elements.recordBtn.innerHTML = `Stop Recording (${m}:${s})`;
 }
 
 elements.recordBtn.addEventListener('click', () => {
@@ -139,13 +174,11 @@ elements.recordBtn.addEventListener('click', () => {
 function startRecording() {
     state.recordedChunks = [];
     
-    // Ensure the optics/webcam feed is actually active before starting
     if (!state.cameraStream || state.cameraStream.getVideoTracks().length === 0) {
-        alert("Optics offline: Please turn on 'Toggle Optics' before initiating recording.");
+        alert("Please turn on 'Toggle Camera' before recording.");
         return;
     }
 
-    // Grab raw video and audio straight from the source streams
     const tracks = [state.cameraStream.getVideoTracks()[0]];
     if (state.audioStream && state.audioStream.getAudioTracks().length > 0) {
         tracks.push(state.audioStream.getAudioTracks()[0]);
@@ -170,8 +203,9 @@ function startRecording() {
     state.isRecording = true;
     state.recordingStartTime = Date.now();
     state.recordingIntervalId = setInterval(updateRecordingTimer, 1000);
-    elements.recordBtn.innerHTML = `Halt Recording (00:00)`;
-    elements.recordBtn.style.backgroundColor = 'rgba(184, 40, 61, 0.9)'; 
+    elements.recordBtn.innerHTML = `Stop Recording (00:00)`;
+    elements.recordBtn.style.backgroundColor = '#ff3344'; 
+    elements.recordBtn.style.boxShadow = '0 0 15px rgba(255, 51, 68, 0.6)';
 }
 
 function stopRecording() {
@@ -181,12 +215,12 @@ function stopRecording() {
         state.mediaRecorder.stop();
     }
     elements.recordBtn.style.backgroundColor = ''; 
+    elements.recordBtn.style.boxShadow = '';
 }
 
-// --- FFMPEG CONVERSION LOGIC ---
 async function processRecording() {
     elements.recordBtn.disabled = true;
-    elements.recordBtn.innerHTML = `Encoding... 0%`;
+    elements.recordBtn.innerHTML = `Processing Video... 0%`;
 
     const blob = new Blob(state.recordedChunks, { type: 'video/webm' });
     state.recordedChunks = [];
@@ -200,13 +234,12 @@ async function processRecording() {
         
         ffmpeg.setProgress(({ ratio }) => {
             const percent = Math.min(100, Math.max(0, Math.round(ratio * 100)));
-            elements.recordBtn.innerHTML = `Encoding... ${percent}%`;
+            elements.recordBtn.innerHTML = `Processing Video... ${percent}%`;
         });
 
         await ffmpeg.load();
         await ffmpeg.FS('writeFile', 'input.webm', await fetchFile(blob));
         
-        // Execute conversion parameters
         await ffmpeg.run('-i', 'input.webm', '-c:v', 'libx264', '-preset', 'ultrafast', '-c:a', 'aac', 'output.mp4');
         
         const data = ffmpeg.FS('readFile', 'output.mp4');
@@ -223,7 +256,7 @@ async function processRecording() {
             const a = document.createElement('a');
             a.style.display = 'none';
             a.href = state.latestMp4Url;
-            a.download = `transmission_${Date.now()}.mp4`;
+            a.download = `recording_${Date.now()}.mp4`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -231,18 +264,16 @@ async function processRecording() {
 
     } catch (error) {
         console.error(error);
-        alert('Encoding failed. Verify FFmpeg configuration in console.');
+        alert('Encoding failed. Ensure you are not in Incognito Mode and check console.');
     } finally {
         elements.recordBtn.disabled = false;
-        elements.recordBtn.innerHTML = `Initiate Recording`;
+        elements.recordBtn.innerHTML = `Start Recording`;
     }
 }
 
-// Modal closing
 elements.closeModal.addEventListener('click', () => {
     elements.recordingsModal.style.display = 'none';
     elements.latestRecording.pause();
 });
 
-// Initializer
 updateScriptText();
