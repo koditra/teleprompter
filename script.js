@@ -2,11 +2,7 @@ const elements = {
     input: document.getElementById('input'),
     script: document.getElementById('script'),
     viewer: document.getElementById('viewer'),
-    speed: document.getElementById('speed'),
     font: document.getElementById('font'),
-    startBtn: document.getElementById('startBtn'),
-    pauseBtn: document.getElementById('pauseBtn'),
-    resumeBtn: document.getElementById('resumeBtn'),
     mirrorBtn: document.getElementById('mirrorBtn'),
     fullscreenBtn: document.getElementById('fullscreenBtn'),
     cameraBtn: document.getElementById('cameraBtn'),
@@ -22,7 +18,6 @@ const elements = {
 };
 
 const state = {
-    isScrolling: false,
     isMirrored: false,
     cameraActive: false,
     isRecording: false,
@@ -31,11 +26,10 @@ const state = {
     mediaRecorder: null,
     recordedChunks: [],
     animationFrameId: null,
-    scrollFrameId: null,
     recordingStartTime: null,
     recordingIntervalId: null,
-    lastScrollTime: null,
-    latestMp4Url: null
+    latestMp4Url: null,
+    canvasLines: []
 };
 
 const canvas = document.createElement('canvas');
@@ -44,49 +38,52 @@ canvas.height = 1080;
 const ctx = canvas.getContext('2d', { alpha: false });
 
 function updateScriptText() {
-    elements.script.innerText = elements.input.value || "Your script will appear here. Press Start to begin.";
+    elements.script.innerText = elements.input.value || "Your script will appear here.";
+    layoutCanvasText();
+}
+
+function layoutCanvasText() {
+    state.canvasLines = [];
+    const text = elements.input.value || "Your script will appear here.";
+    const fontSize = parseInt(elements.font.value, 10) || 48;
+    
+    ctx.font = `bold ${fontSize * 2}px sans-serif`;
+    const maxWidth = 1920 * 0.9;
+    
+    const paragraphs = text.split('\n');
+    for (const para of paragraphs) {
+        if (para === '') {
+            state.canvasLines.push('');
+            continue;
+        }
+        const words = para.split(' ');
+        let currentLine = '';
+        for (let i = 0; i < words.length; i++) {
+            const word = words[i];
+            const testLine = currentLine ? currentLine + ' ' + word : word;
+            if (ctx.measureText(testLine).width > maxWidth) {
+                state.canvasLines.push(currentLine);
+                currentLine = word;
+            } else {
+                currentLine = testLine;
+            }
+        }
+        if (currentLine) {
+            state.canvasLines.push(currentLine);
+        }
+    }
 }
 
 elements.input.addEventListener('input', updateScriptText);
 elements.font.addEventListener('input', () => {
     elements.script.style.fontSize = `${elements.font.value}px`;
+    layoutCanvasText();
 });
-
-function scrollLoop(timestamp) {
-    if (!state.isScrolling) return;
-    if (!state.lastScrollTime) state.lastScrollTime = timestamp;
-    const delta = timestamp - state.lastScrollTime;
-    state.lastScrollTime = timestamp;
-
-    const speed = parseFloat(elements.speed.value);
-    elements.viewer.scrollTop += speed * (delta / 16.666);
-
-    state.scrollFrameId = requestAnimationFrame(scrollLoop);
-}
-
-elements.startBtn.addEventListener('click', () => {
-    elements.viewer.scrollTop = 0;
-    state.isScrolling = true;
-    state.lastScrollTime = null;
-    cancelAnimationFrame(state.scrollFrameId);
-    state.scrollFrameId = requestAnimationFrame(scrollLoop);
-});
-
-elements.pauseBtn.addEventListener('click', () => {
-    state.isScrolling = false;
-    cancelAnimationFrame(state.scrollFrameId);
-});
-
-elements.resumeBtn.addEventListener('click', () => {
-    state.isScrolling = true;
-    state.lastScrollTime = null;
-    cancelAnimationFrame(state.scrollFrameId);
-    state.scrollFrameId = requestAnimationFrame(scrollLoop);
-});
+window.addEventListener('resize', layoutCanvasText);
 
 elements.mirrorBtn.addEventListener('click', () => {
     state.isMirrored = !state.isMirrored;
-    elements.script.style.transform = state.isMirrored ? 'scaleX(-1)' : 'none';
+    elements.script.style.transform = state.isMirrored ? 'scaleX(-1)' : 'scaleX(1)';
 });
 
 elements.fullscreenBtn.addEventListener('click', () => {
@@ -167,7 +164,7 @@ document.addEventListener('mousemove', (e) => {
 document.addEventListener('mouseup', () => isResizing = false);
 
 function renderCanvas() {
-    ctx.fillStyle = '#000000';
+    ctx.fillStyle = '#020205';
     ctx.fillRect(0, 0, 1920, 1080);
 
     const viewerRect = elements.viewer.getBoundingClientRect();
@@ -186,36 +183,23 @@ function renderCanvas() {
     }
 
     const fontSize = parseInt(elements.font.value, 10) || 48;
-    const canvasFontSize = fontSize * scaleY;
+    const canvasFontSize = fontSize * 2;
     ctx.fillStyle = '#FFFFFF';
     ctx.font = `bold ${canvasFontSize}px sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
 
-    const text = elements.input.value || "Your script will appear here. Press Start to begin.";
-    const maxWidth = 1920 * 0.9;
     const startX = 1920 / 2;
-    const lineHeight = canvasFontSize * 1.6;
+    const lineHeight = canvasFontSize * 1.7;
     
-    const paddingTop = (viewerRect.height * 0.4) * scaleY;
-    let y = paddingTop - (elements.viewer.scrollTop * scaleY);
+    let totalHeight = state.canvasLines.length * lineHeight;
+    let y = (1080 - totalHeight) / 2;
+    if (y < 50) y = 50;
 
-    const paragraphs = text.split('\n');
-    for (const p of paragraphs) {
-        const words = p.split(' ');
-        let line = '';
-        for (let i = 0; i < words.length; i++) {
-            const testLine = line + words[i] + ' ';
-            const metrics = ctx.measureText(testLine);
-            if (metrics.width > maxWidth && i > 0) {
-                if (y > -lineHeight && y < 1080 + lineHeight) ctx.fillText(line, startX, y);
-                line = words[i] + ' ';
-                y += lineHeight;
-            } else {
-                line = testLine;
-            }
+    for (const line of state.canvasLines) {
+        if (y + lineHeight > 0 && y < 1080) {
+            ctx.fillText(line, startX, y);
         }
-        if (y > -lineHeight && y < 1080 + lineHeight) ctx.fillText(line, startX, y);
         y += lineHeight;
     }
     ctx.restore();
@@ -302,7 +286,7 @@ async function processRecording() {
     state.recordedChunks = [];
 
     try {
-        const { FFmpeg } = await import('https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/esm/index.js');
+        const { FFmpeg } = await import('./ffmpeg.js');
         const { fetchFile } = await import('https://unpkg.com/@ffmpeg/util@0.12.1/dist/esm/index.js');
         
         const ffmpeg = new FFmpeg();
@@ -350,7 +334,7 @@ async function processRecording() {
 
     } catch (error) {
         console.error(error);
-        alert('An origin execution error occurred. Please ensure this app is run through a local web server (Live Server, serve, etc.) instead of directly launching the HTML file.');
+        alert('Verification failed. Confirm that ffmpeg.js and worker.js are present in the root folder of your host repository.');
     } finally {
         elements.recordBtn.disabled = false;
         elements.recordBtn.innerHTML = `Start Recording`;
@@ -358,3 +342,4 @@ async function processRecording() {
 }
 
 updateScriptText();
+setTimeout(layoutCanvasText, 100);
