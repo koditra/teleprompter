@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Professional Teleprompter & Video Recorder</title>
+    <title>Teleprompter & Recorder</title>
     
     <script src="coi-serviceworker.js"></script>
     <script src="ffmpeg.min.js"></script>
@@ -18,103 +18,66 @@
         <div class="meteor-3"></div>
     </div>
 
-    <div class="app-layout">
-        <div class="container">
-            <aside class="sidebar">
-                <div class="sidebar-header">
-                    <h2>Script & Settings</h2>
+    <div class="container">
+        <aside class="controls-sidebar">
+            <h2>Settings</h2>
+            
+            <div class="control-group">
+                <label for="input">Script</label>
+                <textarea id="input" placeholder="Type or paste your script here..."></textarea>
+            </div>
+
+            <div class="control-group">
+                <label for="font">Font Size</label>
+                <input type="range" id="font" min="24" max="120" step="2" value="60">
+            </div>
+
+            <div class="control-group">
+                <label for="speed">Scroll Speed</label>
+                <input type="range" id="speed" min="0.5" max="5" step="0.1" value="1.5">
+            </div>
+
+            <div class="button-grid">
+                <button id="playScrollBtn" class="btn btn-action">Start Auto-Scroll</button>
+                <button id="mirrorBtn" class="btn btn-action">Mirror Text</button>
+                <button id="cameraBtn" class="btn btn-camera">Toggle Camera</button>
+            </div>
+
+            <div class="recording-controls">
+                <button id="recordBtn" class="btn btn-record btn-large">Start Recording</button>
+                <button id="downloadRecording" class="btn btn-download" disabled>Download Video</button>
+            </div>
+        </aside>
+
+        <main class="prompter-area">
+            <div id="viewer">
+                <div id="scriptContainer">
+                    <div id="script">Your script will appear here.</div>
                 </div>
                 
-                <div class="control-group">
-                    <label for="input">Script Input</label>
-                    <textarea id="input" placeholder="Type or paste your presentation script here..."></textarea>
-                </div>
-
-                <div class="control-group">
-                    <div class="label-row">
-                        <label for="font">Font Size</label>
-                        <span id="fontSizeDisplay" class="value-badge">60px</span>
+                <div id="cameraWindow" style="display: none;">
+                    <div id="cameraHeader">
+                        <span>Webcam Preview</span>
+                        <button id="closeCamera">&times;</button>
                     </div>
-                    <div class="slider-control-row">
-                        <button id="fontDecBtn" class="btn btn-sm btn-action" title="Decrease Font Size">−</button>
-                        <input type="range" id="font" min="24" max="120" step="2" value="60">
-                        <button id="fontIncBtn" class="btn btn-sm btn-action" title="Increase Font Size">+</button>
+                    <div class="video-container">
+                        <video id="camera" autoplay muted playsinline></video>
                     </div>
+                    <div id="resizeHandle"></div>
                 </div>
-
-                <div class="control-group">
-                    <div class="label-row">
-                        <label for="speed">Scroll Speed</label>
-                        <span id="speedDisplay" class="value-badge">1.5x</span>
-                    </div>
-                    <div class="slider-control-row">
-                        <button id="speedDecBtn" class="btn btn-sm btn-action" title="Decrease Speed">−</button>
-                        <input type="range" id="speed" min="0.5" max="5.0" step="0.1" value="1.5">
-                        <button id="speedIncBtn" class="btn btn-sm btn-action" title="Increase Speed">+</button>
-                    </div>
-                </div>
-
-                <div class="button-stack">
-                    <button id="mirrorBtn" class="btn btn-secondary">Mirror Mode</button>
-                    <button id="cameraBtn" class="btn btn-camera">Toggle Camera</button>
-                </div>
-
-                <div class="recording-block">
-                    <button id="recordBtn" class="btn btn-record">Start Recording</button>
-                    <button id="downloadRecording" class="btn btn-download" disabled>Download Video</button>
-                </div>
-            </aside>
-
-            <main class="prompter-panel" id="prompterArea">
-                <div class="panel-header">
-                    <div class="indicator-group">
-                        <span id="statusIndicator" class="status-dot"></span>
-                        <span id="statusText">Ready</span>
-                    </div>
-                    <button id="fullscreenBtn" class="btn btn-sm btn-secondary" title="Toggle Fullscreen">⛶ Fullscreen</button>
-                </div>
-
-                <div id="viewer">
-                    <div id="scriptContainer">
-                        <div id="script">Your script will appear here. Paste your text to begin.</div>
-                    </div>
-                    
-                    <div id="cameraWindow" style="display: none;">
-                        <div id="cameraHeader">
-                            <span>Webcam Stream</span>
-                            <button id="closeCamera" aria-label="Close Preview">&times;</button>
-                        </div>
-                        <div class="video-container">
-                            <video id="camera" autoplay muted playsinline></video>
-                        </div>
-                        <div id="resizeHandle"></div>
-                    </div>
-                </div>
-
-                <div class="prompter-control-bar">
-                    <button id="restartBtn" class="btn btn-control" title="Restart to Beginning">⏮ Restart</button>
-                    <button id="stepBackBtn" class="btn btn-control" title="Step Back">⏪ Back</button>
-                    <button id="playBtn" class="btn btn-control btn-play" title="Start Scroll">▶ Play</button>
-                    <button id="pauseBtn" class="btn btn-control btn-pause" style="display: none;" title="Pause Scroll">⏸ Pause</button>
-                    <button id="stepForwardBtn" class="btn btn-control" title="Step Forward">⏩ Forward</button>
-                    <button id="stopBtn" class="btn btn-control" title="Stop & Reset">⏹ Stop</button>
-                </div>
-            </main>
-        </div>
-
-        <footer class="privacy-footer">
-            <p>Every piece of code is processed locally in your browser. Privacy is important to us.</p>
-        </footer>
+            </div>
+        </main>
     </div>
+
+    <footer class="privacy-footer">
+        Every piece of code is run locally on your browser. Privacy is important to us.
+    </footer>
 
     <section id="recordings-modal" style="display: none;">
         <div class="modal-content">
-            <h3>Playback and Review</h3>
-            <p class="modal-sub">Your video has successfully encoded. You can preview it below or download your local copy.</p>
+            <h3>Video Ready</h3>
             <video id="latestRecording" controls></video>
-            <div class="modal-actions">
-                <button id="closeModal" class="btn btn-secondary">Close Window</button>
-            </div>
+            <button id="closeModal" class="btn btn-action">Close Video</button>
         </div>
     </section>
 
