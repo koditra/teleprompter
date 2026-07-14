@@ -3,17 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Space Teleprompter and Recorder</title>
+    <title>Space Teleprompter</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/coi-serviceworker/0.1.7/coi-serviceworker.min.js"></script>
+    
+    <script src="ffmpeg.min.js"></script>
+    
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div id="stars"></div>
+
     <div class="container">
         <header class="controls-sidebar">
-            <h2>Controls</h2>
+            <h2>Mission Control</h2>
             
             <div class="control-group">
-                <label for="input">Script Text</label>
-                <textarea id="input" placeholder="Enter script here..."></textarea>
+                <label for="input">Transmission Script</label>
+                <textarea id="input" placeholder="Enter your transmission script here..."></textarea>
             </div>
 
             <div class="control-row">
@@ -24,13 +31,12 @@
             </div>
 
             <div class="button-grid">
-                <button id="mirrorBtn" class="btn">Mirror Mode</button>
-                <button id="fullscreenBtn" class="btn">Fullscreen</button>
-                <button id="cameraBtn" class="btn btn-camera">Toggle Camera</button>
+                <button id="mirrorBtn" class="btn">Mirror Display</button>
+                <button id="cameraBtn" class="btn btn-camera">Toggle Optics</button>
             </div>
 
             <div class="recording-controls">
-                <button id="recordBtn" class="btn btn-record btn-large">Start Recording</button>
+                <button id="recordBtn" class="btn btn-record btn-large">Initiate Recording</button>
                 <button id="downloadRecording" class="btn btn-download" disabled>Download MP4</button>
             </div>
         </header>
@@ -38,12 +44,12 @@
         <main class="prompter-area">
             <div id="viewer">
                 <div id="scriptContainer">
-                    <div id="script">Your script will appear here.</div>
+                    <div id="script">Your transmission script will appear here.</div>
                 </div>
                 
                 <div id="cameraWindow" style="display: none;">
                     <div id="cameraHeader">
-                        <span>Webcam Preview</span>
+                        <span>Optics Feed</span>
                         <button id="closeCamera">&times;</button>
                     </div>
                     <div class="video-container">
@@ -55,9 +61,12 @@
         </main>
     </div>
 
-    <section id="recordings">
-        <h3>Latest Recording Output</h3>
-        <video id="latestRecording" controls style="display: none;"></video>
+    <section id="recordings-modal" style="display: none;">
+        <div class="modal-content">
+            <h3>Transmission Ready</h3>
+            <video id="latestRecording" controls></video>
+            <button id="closeModal" class="btn">Close Video</button>
+        </div>
     </section>
 
     <script type="module" src="script.js"></script>
