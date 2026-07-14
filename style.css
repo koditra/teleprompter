@@ -1,0 +1,114 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: #111;
+    color: white;
+    font-family: Arial, Helvetica, sans-serif;
+    overflow: hidden;
+}
+
+#controls {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background: #222;
+    padding: 12px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+    z-index: 1000;
+}
+
+textarea {
+    width: 320px;
+    height: 90px;
+    resize: none;
+}
+
+button,
+input {
+    font-size: 16px;
+}
+
+#viewer {
+    margin-top: 120px;
+    height: calc(100vh - 120px);
+    overflow: hidden;
+    position: relative;
+}
+
+#script {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80%;
+    text-align: center;
+    white-space: pre-wrap;
+    font-size: 42px;
+    line-height: 1.6;
+}
+
+#cameraWindow {
+    position: fixed;
+    top: 150px;
+    right: 30px;
+    width: 320px;
+    height: 240px;
+    background: #1b1b1b;
+    border: 2px solid #444;
+    border-radius: 12px;
+    overflow: hidden;
+    display: none;
+    z-index: 5000;
+    min-width: 180px;
+    min-height: 135px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, .45);
+}
+
+#cameraHeader {
+    height: 38px;
+    background: #2a2a2a;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 12px;
+    cursor: move;
+    user-select: none;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+#closeCamera {
+    background: transparent;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+}
+
+#camera {
+    width: 100%;
+    height: calc(100% - 38px);
+    object-fit: cover;
+    background: black;
+}
+
+#resizeHandle {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 18px;
+    height: 18px;
+    cursor: nwse-resize;
+    background: linear-gradient(
+        135deg,
+        transparent 50%,
+        white 50%
+    );
+}
