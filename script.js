@@ -16,6 +16,11 @@ const camera = document.getElementById("camera");
 const cameraHeader = document.getElementById("cameraHeader");
 const resizeHandle = document.getElementById("resizeHandle");
 
+const recordBtn = document.getElementById("recordBtn");
+
+let recorder;
+let recordedChunks = [];
+
 let interval;
 let position;
 let mirrored = false;
@@ -161,4 +166,91 @@ document.addEventListener("mousemove", e => {
 
 document.addEventListener("mouseup", () => {
     resizing = false;
+});
+
+async function startRecording() {
+
+    if (!stream) {
+        alert("Turn on the camera first!");
+        return;
+    }
+
+    recordedChunks = [];
+
+    recorder = new MediaRecorder(stream, {
+        mimeType: "video/webm"
+    });
+
+    recorder.ondataavailable = e => {
+        if (e.data.size > 0) {
+            recordedChunks.push(e.data);
+        }
+    };
+
+    recorder.onstop = async () => {
+
+        const webmBlob = new Blob(recordedChunks, {
+            type: "video/webm"
+        });
+
+        const buffer = await webmBlob.arrayBuffer();
+
+        const { FFmpeg } = FFmpegWASM;
+
+        const ffmpeg = new FFmpeg();
+
+        await ffmpeg.load();
+
+        await ffmpeg.writeFile(
+            "input.webm",
+            new Uint8Array(buffer)
+        );
+
+        await ffmpeg.exec([
+            "-i",
+            "input.webm",
+            "output.mp4"
+        ]);
+
+        const data = await ffmpeg.readFile("output.mp4");
+
+        const mp4Blob = new Blob(
+            [data.buffer],
+            { type: "video/mp4" }
+        );
+
+        const url = URL.createObjectURL(mp4Blob);
+
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "teleprompter-recording.mp4";
+        a.click();
+
+        URL.revokeObjectURL(url);
+    };
+
+    recorder.start();
+
+    recordBtn.textContent = "Stop Recording";
+}
+
+
+function stopRecording() {
+
+    if (recorder && recorder.state !== "inactive") {
+        recorder.stop();
+    }
+
+    recordBtn.textContent = "Start Recording";
+}
+
+
+recordBtn.addEventListener("click", () => {
+
+    if (recorder && recorder.state === "recording") {
+        stopRecording();
+    } else {
+        startRecording();
+    }
+
 });
