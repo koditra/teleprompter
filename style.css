@@ -10,12 +10,12 @@ body {
     color: #e0e6ed;
     height: 100vh;
     width: 100vw;
-    overflow: hidden; /* Enforces the fixed page requirement */
+    overflow: hidden; /* Fixes the page in place */
     display: flex;
     position: relative;
 }
 
-/* --- Deep Space Starfield System --- */
+/* Deep Space Starfield */
 #stars {
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
@@ -35,7 +35,7 @@ body {
     display: flex;
     width: 100%;
     height: 100%;
-    z-index: 1; /* Renders UI above the stars */
+    z-index: 1; 
 }
 
 .controls-sidebar {
@@ -184,7 +184,7 @@ input[type="range"] {
     transition: transform 0.2s ease;
 }
 
-/* --- Camera Picture-in-Picture UI --- */
+/* Camera Picture-in-Picture UI */
 #cameraWindow {
     position: absolute;
     top: 30px; right: 30px;
@@ -230,7 +230,7 @@ input[type="range"] {
     position: relative;
 }
 
-#camera { width: 100%; height: 100%; object-fit: cover; }
+#camera { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
 
 #resizeHandle {
     position: absolute; bottom: 0; right: 0;
@@ -239,7 +239,7 @@ input[type="range"] {
     opacity: 0.7;
 }
 
-/* --- Modal Overlay for Playback --- */
+/* Modal Overlay */
 #recordings-modal {
     position: fixed;
     top: 0; left: 0;
@@ -268,6 +268,7 @@ input[type="range"] {
 
 #latestRecording {
     width: 100%;
+    max-height: 60vh;
     border-radius: 8px;
     border: 1px solid #2a2a4a;
     background: #000;
