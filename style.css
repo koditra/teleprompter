@@ -17,7 +17,7 @@ body {
 .container {
     display: flex;
     flex: 1;
-    height: calc(100vh - 200px);
+    height: calc(100vh - 250px);
 }
 
 .controls-sidebar {
@@ -54,7 +54,7 @@ label {
 
 textarea {
     width: 100%;
-    height: 140px;
+    height: 180px;
     background-color: #07070f;
     border: 1px solid #232449;
     color: #ffffff;
@@ -90,7 +90,7 @@ input[type="range"] {
 
 .button-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     gap: 10px;
 }
 
@@ -115,15 +115,6 @@ input[type="range"] {
     opacity: 0.2;
     cursor: not-allowed;
 }
-
-.btn-start { background-color: #0d3c26; border-color: #19643e; color: #75e7a8; }
-.btn-start:hover:not(:disabled) { background-color: #135737; border-color: #238c57; color: #ffffff; }
-
-.btn-pause { background-color: #5c3e00; border-color: #8a6000; color: #ffd075; }
-.btn-pause:hover:not(:disabled) { background-color: #7a5500; border-color: #b37d00; color: #ffffff; }
-
-.btn-resume { background-color: #0b3547; border-color: #125774; color: #75d5ff; }
-.btn-resume:hover:not(:disabled) { background-color: #104e69; border-color: #1c7fa9; color: #ffffff; }
 
 .btn-camera { background-color: #311247; border-color: #532375; color: #d575ff; }
 .btn-camera:hover:not(:disabled) { background-color: #471c66; border-color: #7736a8; color: #ffffff; }
@@ -154,14 +145,26 @@ input[type="range"] {
     flex: 1;
     position: relative;
     background-color: #020205;
+    display: flex;
+    flex-direction: column;
 }
 
 #viewer {
     width: 100%;
     height: 100%;
-    overflow-y: hidden;
+    overflow-y: auto;
     position: relative;
-    padding: 45vh 8% 50vh 8%;
+    padding: 40px;
+}
+
+#scriptContainer {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100%;
 }
 
 #script {
@@ -170,9 +173,10 @@ input[type="range"] {
     line-height: 1.7;
     text-align: center;
     white-space: pre-wrap;
-    transform-origin: center top;
-    transition: transform 0.1s linear;
+    width: 100%;
+    word-wrap: break-word;
     text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+    transition: transform 0.2s ease;
 }
 
 #cameraWindow {
@@ -244,7 +248,7 @@ input[type="range"] {
     flex-direction: column;
     align-items: center;
     gap: 20px;
-    min-height: 250px;
+    min-height: 300px;
 }
 
 #latestRecording {
