@@ -4,7 +4,6 @@ const elements = {
     viewer: document.getElementById('viewer'),
     font: document.getElementById('font'),
     mirrorBtn: document.getElementById('mirrorBtn'),
-    fullscreenBtn: document.getElementById('fullscreenBtn'),
     cameraBtn: document.getElementById('cameraBtn'),
     closeCamera: document.getElementById('closeCamera'),
     cameraWindow: document.getElementById('cameraWindow'),
@@ -14,7 +13,8 @@ const elements = {
     recordBtn: document.getElementById('recordBtn'),
     latestRecording: document.getElementById('latestRecording'),
     downloadRecording: document.getElementById('downloadRecording'),
-    recordings: document.getElementById('recordings')
+    recordingsModal: document.getElementById('recordings-modal'),
+    closeModal: document.getElementById('closeModal')
 };
 
 const state = {
@@ -32,19 +32,20 @@ const state = {
     canvasLines: []
 };
 
+// Virtual canvas to bake the text and webcam together
 const canvas = document.createElement('canvas');
 canvas.width = 1920;
 canvas.height = 1080;
 const ctx = canvas.getContext('2d', { alpha: false });
 
 function updateScriptText() {
-    elements.script.innerText = elements.input.value || "Your script will appear here.";
+    elements.script.innerText = elements.input.value || "Your transmission script will appear here.";
     layoutCanvasText();
 }
 
 function layoutCanvasText() {
     state.canvasLines = [];
-    const text = elements.input.value || "Your script will appear here.";
+    const text = elements.input.value || "Your transmission script will appear here.";
     const fontSize = parseInt(elements.font.value, 10) || 48;
     
     ctx.font = `bold ${fontSize * 2}px sans-serif`;
@@ -84,16 +85,10 @@ window.addEventListener('resize', layoutCanvasText);
 elements.mirrorBtn.addEventListener('click', () => {
     state.isMirrored = !state.isMirrored;
     elements.script.style.transform = state.isMirrored ? 'scaleX(-1)' : 'scaleX(1)';
+    elements.mirrorBtn.style.background = state.isMirrored ? '#2a2a4a' : '';
 });
 
-elements.fullscreenBtn.addEventListener('click', () => {
-    if (!document.fullscreenElement) {
-        elements.viewer.requestFullscreen().catch(err => console.error(err));
-    } else {
-        document.exitFullscreen();
-    }
-});
-
+// Camera activation
 elements.cameraBtn.addEventListener('click', async () => {
     if (state.cameraActive) {
         closeCameraSystem();
@@ -110,7 +105,7 @@ elements.cameraBtn.addEventListener('click', async () => {
         state.cameraActive = true;
     } catch (err) {
         console.error(err);
-        alert('Could not access webcam and microphone. Ensure permissions are allowed.');
+        alert('Optics offline: Could not access webcam/microphone. Ensure permissions are granted.');
     }
 });
 
@@ -124,6 +119,13 @@ function closeCameraSystem() {
 
 elements.closeCamera.addEventListener('click', closeCameraSystem);
 
+// Modal UI Handlers
+elements.closeModal.addEventListener('click', () => {
+    elements.recordingsModal.style.display = 'none';
+    elements.latestRecording.pause();
+});
+
+// Window Draggable Logic
 let isDragging = false, dragStartX, dragStartY, initialLeft, initialTop;
 elements.cameraHeader.addEventListener('mousedown', (e) => {
     isDragging = true;
@@ -144,6 +146,7 @@ document.addEventListener('mousemove', (e) => {
 });
 document.addEventListener('mouseup', () => isDragging = false);
 
+// Window Resizable Logic
 let isResizing = false, resizeStartX, resizeStartY, initialWidth, initialHeight;
 elements.resizeHandle.addEventListener('mousedown', (e) => {
     isResizing = true;
@@ -163,8 +166,9 @@ document.addEventListener('mousemove', (e) => {
 });
 document.addEventListener('mouseup', () => isResizing = false);
 
+// Bake elements onto Virtual Canvas
 function renderCanvas() {
-    ctx.fillStyle = '#020205';
+    ctx.fillStyle = '#000000'; // Deep space black
     ctx.fillRect(0, 0, 1920, 1080);
 
     const viewerRect = elements.viewer.getBoundingClientRect();
@@ -184,13 +188,13 @@ function renderCanvas() {
 
     const fontSize = parseInt(elements.font.value, 10) || 48;
     const canvasFontSize = fontSize * 2;
-    ctx.fillStyle = '#FFFFFF';
+    ctx.fillStyle = '#e0e6ed';
     ctx.font = `bold ${canvasFontSize}px sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
 
     const startX = 1920 / 2;
-    const lineHeight = canvasFontSize * 1.7;
+    const lineHeight = canvasFontSize * 1.6;
     
     let totalHeight = state.canvasLines.length * lineHeight;
     let y = (1080 - totalHeight) / 2;
@@ -204,6 +208,7 @@ function renderCanvas() {
     }
     ctx.restore();
 
+    // Render Picture-in-Picture Optics over text
     if (state.cameraActive && elements.camera.readyState >= 2 && elements.cameraWindow.style.display !== 'none') {
         const camRect = elements.cameraWindow.getBoundingClientRect();
         const cx = (camRect.left - viewerRect.left) * scaleX;
@@ -213,6 +218,10 @@ function renderCanvas() {
 
         ctx.save();
         ctx.drawImage(elements.camera, cx, cy, cw, ch);
+        // Add a nice neon border in the final recording
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = '#75e3ff';
+        ctx.strokeRect(cx, cy, cw, ch);
         ctx.restore();
     }
 
@@ -224,7 +233,7 @@ function updateRecordingTimer() {
     const diff = new Date(now - state.recordingStartTime);
     const m = String(diff.getUTCMinutes()).padStart(2, '0');
     const s = String(diff.getUTCSeconds()).padStart(2, '0');
-    elements.recordBtn.innerHTML = `Stop Recording (${m}:${s})`;
+    elements.recordBtn.innerHTML = `Halt Recording (${m}:${s})`;
 }
 
 elements.recordBtn.addEventListener('click', () => {
@@ -266,7 +275,8 @@ function startRecording() {
     state.isRecording = true;
     state.recordingStartTime = Date.now();
     state.recordingIntervalId = setInterval(updateRecordingTimer, 1000);
-    elements.recordBtn.innerHTML = `Stop Recording (00:00)`;
+    elements.recordBtn.innerHTML = `Halt Recording (00:00)`;
+    elements.recordBtn.style.backgroundColor = 'rgba(184, 40, 61, 0.9)'; // Turn button red to indicate live recording
 }
 
 function stopRecording() {
@@ -276,70 +286,64 @@ function stopRecording() {
         state.mediaRecorder.stop();
     }
     cancelAnimationFrame(state.animationFrameId);
+    elements.recordBtn.style.backgroundColor = ''; 
 }
 
 async function processRecording() {
     elements.recordBtn.disabled = true;
-    elements.recordBtn.innerHTML = `Converting... 0%`;
+    elements.recordBtn.innerHTML = `Encoding... 0%`;
 
     const blob = new Blob(state.recordedChunks, { type: 'video/webm' });
     state.recordedChunks = [];
 
     try {
-        const { FFmpeg } = await import('./ffmpeg.js');
-        const { fetchFile } = await import('https://unpkg.com/@ffmpeg/util@0.12.1/dist/esm/index.js');
+        const { createFFmpeg, fetchFile } = FFmpeg;
+        const ffmpeg = createFFmpeg({ 
+            log: true,
+            corePath: 'https://unpkg.com/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js'
+        });
         
-        const ffmpeg = new FFmpeg();
-        
-        ffmpeg.on('progress', ({ progress }) => {
-            const percent = Math.min(100, Math.max(0, Math.round(progress * 100)));
-            elements.recordBtn.innerHTML = `Converting... ${percent}%`;
+        ffmpeg.setProgress(({ ratio }) => {
+            const percent = Math.min(100, Math.max(0, Math.round(ratio * 100)));
+            elements.recordBtn.innerHTML = `Encoding... ${percent}%`;
         });
 
-        await ffmpeg.load({
-            coreURL: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm/ffmpeg-core.js',
-            wasmURL: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm/ffmpeg-core.wasm'
-        });
-
-        await ffmpeg.writeFile('input.webm', await fetchFile(blob));
+        await ffmpeg.load();
+        await ffmpeg.FS('writeFile', 'input.webm', await fetchFile(blob));
         
-        await ffmpeg.exec([
-            '-i', 'input.webm', 
-            '-c:v', 'libx264', 
-            '-preset', 'ultrafast', 
-            '-c:a', 'aac', 
-            'output.mp4'
-        ]);
+        // Execute conversion parameters
+        await ffmpeg.run('-i', 'input.webm', '-c:v', 'libx264', '-preset', 'ultrafast', '-c:a', 'aac', 'output.mp4');
         
-        const data = await ffmpeg.readFile('output.mp4');
+        const data = ffmpeg.FS('readFile', 'output.mp4');
         
         if (state.latestMp4Url) URL.revokeObjectURL(state.latestMp4Url);
         
         state.latestMp4Url = URL.createObjectURL(new Blob([data.buffer], { type: 'video/mp4' }));
         elements.latestRecording.src = state.latestMp4Url;
-        elements.latestRecording.style.display = 'block';
+        
+        // Reveal modal
+        elements.recordingsModal.style.display = 'flex';
         
         elements.downloadRecording.disabled = false;
         elements.downloadRecording.onclick = () => {
             const a = document.createElement('a');
             a.style.display = 'none';
             a.href = state.latestMp4Url;
-            a.download = `teleprompter_${Date.now()}.mp4`;
+            a.download = `transmission_${Date.now()}.mp4`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
         };
-        
-        elements.recordings.scrollIntoView({ behavior: 'smooth' });
 
     } catch (error) {
         console.error(error);
-        alert('Verification failed. Confirm that ffmpeg.js and worker.js are present in the root folder of your host repository.');
+        alert('Encoding failed. Verify FFmpeg configuration in console.');
     } finally {
         elements.recordBtn.disabled = false;
-        elements.recordBtn.innerHTML = `Start Recording`;
+        elements.recordBtn.innerHTML = `Initiate Recording`;
     }
 }
 
+// Initializers
 updateScriptText();
 setTimeout(layoutCanvasText, 100);
