@@ -6,15 +6,19 @@
     <title>Teleprompter</title>
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
     <div id="controls">
+
         <textarea id="input" placeholder="Paste your script here..."></textarea>
 
         <button id="cameraBtn">Turn Camera On</button>
+
         <button id="startBtn">Start</button>
         <button id="pauseBtn">Pause</button>
         <button id="resumeBtn">Resume</button>
+
         <button id="mirrorBtn">Mirror</button>
         <button id="fullscreenBtn">Fullscreen</button>
 
@@ -27,17 +31,33 @@
             Font Size
             <input id="font" type="range" min="24" max="80" value="42">
         </label>
+
     </div>
+
 
     <div id="viewer">
         <div id="script"></div>
     </div>
 
+
     <div id="cameraWindow">
 
-    <div id="cameraHeader">
-        <span>Camera Preview</span>
-        <button id="closeCamera"></bu
+        <div id="cameraHeader">
+            <span>Camera Preview</span>
+            <button id="closeCamera">✕</button>
+        </div>
+
+        <video
+            id="camera"
+            autoplay
+            muted
+            playsinline
+        ></video>
+
+        <div id="resizeHandle"></div>
+
+    </div>
+
 
     <script src="script.js"></script>
 
