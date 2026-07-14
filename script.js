@@ -25,62 +25,21 @@ const state = {
     audioStream: null,
     mediaRecorder: null,
     recordedChunks: [],
-    animationFrameId: null,
     recordingStartTime: null,
     recordingIntervalId: null,
-    latestMp4Url: null,
-    canvasLines: []
+    latestMp4Url: null
 };
 
-// Virtual canvas to bake the text and webcam together
-const canvas = document.createElement('canvas');
-canvas.width = 1920;
-canvas.height = 1080;
-const ctx = canvas.getContext('2d', { alpha: false });
-
+// --- TEXT & PROMPTER LOGIC ---
 function updateScriptText() {
     elements.script.innerText = elements.input.value || "Your transmission script will appear here.";
-    layoutCanvasText();
-}
-
-function layoutCanvasText() {
-    state.canvasLines = [];
-    const text = elements.input.value || "Your transmission script will appear here.";
-    const fontSize = parseInt(elements.font.value, 10) || 48;
-    
-    ctx.font = `bold ${fontSize * 2}px sans-serif`;
-    const maxWidth = 1920 * 0.9;
-    
-    const paragraphs = text.split('\n');
-    for (const para of paragraphs) {
-        if (para === '') {
-            state.canvasLines.push('');
-            continue;
-        }
-        const words = para.split(' ');
-        let currentLine = '';
-        for (let i = 0; i < words.length; i++) {
-            const word = words[i];
-            const testLine = currentLine ? currentLine + ' ' + word : word;
-            if (ctx.measureText(testLine).width > maxWidth) {
-                state.canvasLines.push(currentLine);
-                currentLine = word;
-            } else {
-                currentLine = testLine;
-            }
-        }
-        if (currentLine) {
-            state.canvasLines.push(currentLine);
-        }
-    }
 }
 
 elements.input.addEventListener('input', updateScriptText);
+
 elements.font.addEventListener('input', () => {
     elements.script.style.fontSize = `${elements.font.value}px`;
-    layoutCanvasText();
 });
-window.addEventListener('resize', layoutCanvasText);
 
 elements.mirrorBtn.addEventListener('click', () => {
     state.isMirrored = !state.isMirrored;
@@ -88,7 +47,7 @@ elements.mirrorBtn.addEventListener('click', () => {
     elements.mirrorBtn.style.background = state.isMirrored ? '#2a2a4a' : '';
 });
 
-// Camera activation
+// --- CAMERA UI LOGIC ---
 elements.cameraBtn.addEventListener('click', async () => {
     if (state.cameraActive) {
         closeCameraSystem();
@@ -99,7 +58,7 @@ elements.cameraBtn.addEventListener('click', async () => {
         state.cameraStream = new MediaStream(stream.getVideoTracks());
         state.audioStream = new MediaStream(stream.getAudioTracks());
         
-        elements.camera.srcObject = state.cameraStream;
+        elements.camera.srcObject = stream; // Preview needs both to monitor
         elements.camera.play();
         elements.cameraWindow.style.display = 'flex';
         state.cameraActive = true;
@@ -118,12 +77,6 @@ function closeCameraSystem() {
 }
 
 elements.closeCamera.addEventListener('click', closeCameraSystem);
-
-// Modal UI Handlers
-elements.closeModal.addEventListener('click', () => {
-    elements.recordingsModal.style.display = 'none';
-    elements.latestRecording.pause();
-});
 
 // Window Draggable Logic
 let isDragging = false, dragStartX, dragStartY, initialLeft, initialTop;
@@ -166,68 +119,7 @@ document.addEventListener('mousemove', (e) => {
 });
 document.addEventListener('mouseup', () => isResizing = false);
 
-// Bake elements onto Virtual Canvas
-function renderCanvas() {
-    ctx.fillStyle = '#000000'; // Deep space black
-    ctx.fillRect(0, 0, 1920, 1080);
-
-    const viewerRect = elements.viewer.getBoundingClientRect();
-    if (viewerRect.width === 0 || viewerRect.height === 0) {
-        state.animationFrameId = requestAnimationFrame(renderCanvas);
-        return;
-    }
-
-    const scaleX = 1920 / viewerRect.width;
-    const scaleY = 1080 / viewerRect.height;
-
-    ctx.save();
-    if (state.isMirrored) {
-        ctx.translate(1920, 0);
-        ctx.scale(-1, 1);
-    }
-
-    const fontSize = parseInt(elements.font.value, 10) || 48;
-    const canvasFontSize = fontSize * 2;
-    ctx.fillStyle = '#e0e6ed';
-    ctx.font = `bold ${canvasFontSize}px sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'top';
-
-    const startX = 1920 / 2;
-    const lineHeight = canvasFontSize * 1.6;
-    
-    let totalHeight = state.canvasLines.length * lineHeight;
-    let y = (1080 - totalHeight) / 2;
-    if (y < 50) y = 50;
-
-    for (const line of state.canvasLines) {
-        if (y + lineHeight > 0 && y < 1080) {
-            ctx.fillText(line, startX, y);
-        }
-        y += lineHeight;
-    }
-    ctx.restore();
-
-    // Render Picture-in-Picture Optics over text
-    if (state.cameraActive && elements.camera.readyState >= 2 && elements.cameraWindow.style.display !== 'none') {
-        const camRect = elements.cameraWindow.getBoundingClientRect();
-        const cx = (camRect.left - viewerRect.left) * scaleX;
-        const cy = (camRect.top - viewerRect.top) * scaleY;
-        const cw = camRect.width * scaleX;
-        const ch = camRect.height * scaleY;
-
-        ctx.save();
-        ctx.drawImage(elements.camera, cx, cy, cw, ch);
-        // Add a nice neon border in the final recording
-        ctx.lineWidth = 4;
-        ctx.strokeStyle = '#75e3ff';
-        ctx.strokeRect(cx, cy, cw, ch);
-        ctx.restore();
-    }
-
-    state.animationFrameId = requestAnimationFrame(renderCanvas);
-}
-
+// --- RECORDING LOGIC ---
 function updateRecordingTimer() {
     const now = Date.now();
     const diff = new Date(now - state.recordingStartTime);
@@ -246,23 +138,26 @@ elements.recordBtn.addEventListener('click', () => {
 
 function startRecording() {
     state.recordedChunks = [];
-    cancelAnimationFrame(state.animationFrameId);
-    state.animationFrameId = requestAnimationFrame(renderCanvas);
+    
+    // Ensure the optics/webcam feed is actually active before starting
+    if (!state.cameraStream || state.cameraStream.getVideoTracks().length === 0) {
+        alert("Optics offline: Please turn on 'Toggle Optics' before initiating recording.");
+        return;
+    }
 
-    const canvasStream = canvas.captureStream(60);
-    const tracks = [...canvasStream.getVideoTracks()];
-
+    // Grab raw video and audio straight from the source streams
+    const tracks = [state.cameraStream.getVideoTracks()[0]];
     if (state.audioStream && state.audioStream.getAudioTracks().length > 0) {
         tracks.push(state.audioStream.getAudioTracks()[0]);
     }
 
-    const combinedStream = new MediaStream(tracks);
+    const rawCameraMediaStream = new MediaStream(tracks);
     const options = { mimeType: 'video/webm; codecs=vp8,opus' };
     
     try {
-        state.mediaRecorder = new MediaRecorder(combinedStream, options);
+        state.mediaRecorder = new MediaRecorder(rawCameraMediaStream, options);
     } catch (e) {
-        state.mediaRecorder = new MediaRecorder(combinedStream);
+        state.mediaRecorder = new MediaRecorder(rawCameraMediaStream);
     }
 
     state.mediaRecorder.ondataavailable = (e) => {
@@ -276,7 +171,7 @@ function startRecording() {
     state.recordingStartTime = Date.now();
     state.recordingIntervalId = setInterval(updateRecordingTimer, 1000);
     elements.recordBtn.innerHTML = `Halt Recording (00:00)`;
-    elements.recordBtn.style.backgroundColor = 'rgba(184, 40, 61, 0.9)'; // Turn button red to indicate live recording
+    elements.recordBtn.style.backgroundColor = 'rgba(184, 40, 61, 0.9)'; 
 }
 
 function stopRecording() {
@@ -285,10 +180,10 @@ function stopRecording() {
     if (state.mediaRecorder && state.mediaRecorder.state !== 'inactive') {
         state.mediaRecorder.stop();
     }
-    cancelAnimationFrame(state.animationFrameId);
     elements.recordBtn.style.backgroundColor = ''; 
 }
 
+// --- FFMPEG CONVERSION LOGIC ---
 async function processRecording() {
     elements.recordBtn.disabled = true;
     elements.recordBtn.innerHTML = `Encoding... 0%`;
@@ -321,7 +216,6 @@ async function processRecording() {
         state.latestMp4Url = URL.createObjectURL(new Blob([data.buffer], { type: 'video/mp4' }));
         elements.latestRecording.src = state.latestMp4Url;
         
-        // Reveal modal
         elements.recordingsModal.style.display = 'flex';
         
         elements.downloadRecording.disabled = false;
@@ -344,6 +238,11 @@ async function processRecording() {
     }
 }
 
-// Initializers
+// Modal closing
+elements.closeModal.addEventListener('click', () => {
+    elements.recordingsModal.style.display = 'none';
+    elements.latestRecording.pause();
+});
+
+// Initializer
 updateScriptText();
-setTimeout(layoutCanvasText, 100);
