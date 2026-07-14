@@ -15,6 +15,7 @@ body {
     position: relative;
 }
 
+/* --- Animated Space Background --- */
 #space-background {
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
@@ -42,6 +43,7 @@ body {
     100% { transform: rotate(5deg) translate(-500px, 500px); }
 }
 
+/* Meteors (Shooting Stars) */
 [class^="meteor-"] {
     position: absolute;
     width: 2px;
@@ -61,10 +63,11 @@ body {
     100% { opacity: 0; }
 }
 
+/* --- Layout & UI --- */
 .container {
     display: flex;
     width: 100%;
-    height: calc(100% - 30px);
+    height: calc(100% - 30px); /* Leaves room for footer */
     z-index: 1; 
 }
 
@@ -82,6 +85,7 @@ body {
     box-shadow: 5px 0 30px rgba(0, 0, 0, 0.8);
 }
 
+/* Custom Scrollbar for Sidebar */
 .controls-sidebar::-webkit-scrollbar { width: 6px; }
 .controls-sidebar::-webkit-scrollbar-track { background: transparent; }
 .controls-sidebar::-webkit-scrollbar-thumb { background: #3b3e7a; border-radius: 3px; }
@@ -177,6 +181,7 @@ input[type="range"] {
     padding-top: 20px;
 }
 
+/* --- Prompter Area --- */
 .prompter-area {
     flex: 1;
     position: relative;
@@ -189,10 +194,11 @@ input[type="range"] {
     height: 100%;
     overflow-y: auto;
     position: relative;
-    padding: 40px 60px 400px 60px;
+    padding: 40px 60px 400px 60px; /* Extra bottom padding so text scrolls completely off screen */
     scroll-behavior: smooth;
 }
 
+/* Hide scrollbar in viewer for cleaner look */
 #viewer::-webkit-scrollbar { display: none; }
 #viewer { -ms-overflow-style: none; scrollbar-width: none; }
 
@@ -218,6 +224,7 @@ input[type="range"] {
     transition: transform 0.2s ease, font-size 0.2s ease;
 }
 
+/* --- Camera PIP --- */
 #cameraWindow {
     position: fixed;
     top: 30px; right: 30px;
@@ -266,6 +273,7 @@ input[type="range"] {
     background: linear-gradient(135deg, transparent 50%, rgba(117, 227, 255, 0.5) 50%);
 }
 
+/* --- Modal Overlay --- */
 #recordings-modal {
     position: fixed;
     top: 0; left: 0;
@@ -298,6 +306,7 @@ input[type="range"] {
     background: #000;
 }
 
+/* --- Privacy Footer --- */
 .privacy-footer {
     position: absolute;
     bottom: 0;
