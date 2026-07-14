@@ -6,37 +6,58 @@
 }
 
 body {
-    background-color: #040408;
-    color: #c1c5e0;
+    background-color: #000000;
+    color: #e0e6ed;
     height: 100vh;
+    width: 100vw;
+    overflow: hidden; /* Enforces the fixed page requirement */
     display: flex;
-    flex-direction: column;
-    overflow-x: hidden;
+    position: relative;
+}
+
+/* --- Deep Space Starfield System --- */
+#stars {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 0;
+    pointer-events: none;
+    background-image: 
+        radial-gradient(1.5px 1.5px at 10% 20%, #ffffff, rgba(0,0,0,0)),
+        radial-gradient(1px 1px at 40% 60%, #c1c5e0, rgba(0,0,0,0)),
+        radial-gradient(2px 2px at 80% 30%, #75e3ff, rgba(0,0,0,0)),
+        radial-gradient(1.5px 1.5px at 30% 90%, #ffffff, rgba(0,0,0,0)),
+        radial-gradient(2px 2px at 70% 80%, #c1c5e0, rgba(0,0,0,0)),
+        radial-gradient(1px 1px at 90% 10%, #75e3ff, rgba(0,0,0,0));
+    background-size: 250px 250px;
 }
 
 .container {
     display: flex;
-    flex: 1;
-    height: calc(100vh - 250px);
+    width: 100%;
+    height: 100%;
+    z-index: 1; /* Renders UI above the stars */
 }
 
 .controls-sidebar {
-    width: 360px;
-    background: linear-gradient(135deg, #0b0b16 0%, #121224 100%);
-    border-right: 1px solid #1f2041;
-    padding: 20px;
+    width: 350px;
+    background: rgba(8, 8, 18, 0.85);
+    backdrop-filter: blur(10px);
+    border-right: 1px solid #2a2a4a;
+    padding: 25px;
     display: flex;
     flex-direction: column;
     gap: 15px;
     overflow-y: auto;
-    box-shadow: 5px 0 15px rgba(0, 0, 0, 0.5);
+    box-shadow: 5px 0 25px rgba(0, 0, 0, 0.9);
 }
 
 h2, h3 {
     color: #ffffff;
     font-weight: 400;
-    letter-spacing: 1px;
-    text-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+    letter-spacing: 2px;
+    text-shadow: 0 0 12px rgba(117, 227, 255, 0.6);
+    text-transform: uppercase;
+    font-size: 1.1rem;
 }
 
 .control-group {
@@ -46,44 +67,34 @@ h2, h3 {
 }
 
 label {
-    font-size: 11px;
+    font-size: 10px;
     text-transform: uppercase;
     letter-spacing: 2px;
-    color: #6c729c;
+    color: #8a93c4;
 }
 
 textarea {
     width: 100%;
-    height: 180px;
-    background-color: #07070f;
-    border: 1px solid #232449;
+    height: 250px;
+    background-color: rgba(3, 3, 8, 0.9);
+    border: 1px solid #3b3e7a;
     color: #ffffff;
     padding: 12px;
     border-radius: 8px;
     resize: none;
     font-size: 14px;
-    box-shadow: inset 0 0 8px rgba(0,0,0,0.8);
 }
 
 textarea:focus {
     outline: none;
-    border-color: #00ffff;
-    box-shadow: 0 0 8px rgba(0, 255, 255, 0.4);
-}
-
-.control-row {
-    display: flex;
-    gap: 15px;
-}
-
-.control-row .control-group {
-    flex: 1;
+    border-color: #75e3ff;
+    box-shadow: 0 0 12px rgba(117, 227, 255, 0.3);
 }
 
 input[type="range"] {
     width: 100%;
-    accent-color: #00ffff;
-    background: #07070f;
+    accent-color: #75e3ff;
+    background: #030308;
     height: 6px;
     border-radius: 3px;
 }
@@ -96,41 +107,35 @@ input[type="range"] {
 
 .btn {
     padding: 12px;
-    border: 1px solid #232449;
+    border: 1px solid #3b3e7a;
     border-radius: 6px;
     font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 11px;
     cursor: pointer;
-    background-color: #161733;
+    background-color: rgba(22, 23, 51, 0.8);
     color: #c1c5e0;
     transition: all 0.2s ease;
 }
 
 .btn:hover:not(:disabled) {
-    background-color: #1f214d;
+    background-color: #2a2a4a;
     color: #ffffff;
-    border-color: #3b3e7a;
+    border-color: #5b5e9a;
+    box-shadow: 0 0 10px rgba(91, 94, 154, 0.4);
 }
 
-.btn:disabled {
-    opacity: 0.2;
-    cursor: not-allowed;
-}
+.btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
-.btn-camera { background-color: #311247; border-color: #532375; color: #d575ff; }
-.btn-camera:hover:not(:disabled) { background-color: #471c66; border-color: #7736a8; color: #ffffff; }
+.btn-camera { background-color: rgba(49, 18, 71, 0.8); border-color: #7736a8; color: #e8a0ff; }
+.btn-camera:hover:not(:disabled) { background-color: rgba(71, 28, 102, 0.9); box-shadow: 0 0 12px rgba(119, 54, 168, 0.6); color: #ffffff; }
 
-.btn-record { background-color: #520c16; border-color: #8c1c2b; color: #ff7587; }
-.btn-record:hover:not(:disabled) { background-color: #701422; border-color: #b8283d; color: #ffffff; }
+.btn-record { background-color: rgba(82, 12, 22, 0.8); border-color: #b8283d; color: #ff9eab; }
+.btn-record:hover:not(:disabled) { background-color: rgba(112, 20, 34, 0.9); box-shadow: 0 0 12px rgba(184, 40, 61, 0.6); color: #ffffff; }
 
-.btn-download { background-color: #114257; border-color: #1b6382; color: #75e3ff; }
-.btn-download:hover:not(:disabled) { background-color: #195975; border-color: #288db8; color: #ffffff; }
-
-.btn-large {
-    width: 100%;
-    padding: 15px;
-    font-size: 15px;
-    letter-spacing: 1px;
-}
+.btn-download { background-color: rgba(17, 66, 87, 0.8); border-color: #288db8; color: #75e3ff; }
+.btn-download:hover:not(:disabled) { background-color: rgba(25, 89, 117, 0.9); box-shadow: 0 0 12px rgba(40, 141, 184, 0.6); color: #ffffff; }
 
 .recording-controls {
     display: flex;
@@ -138,15 +143,15 @@ input[type="range"] {
     gap: 10px;
     margin-top: auto;
     padding-top: 15px;
-    border-top: 1px solid #1f2041;
+    border-top: 1px solid #2a2a4a;
 }
 
 .prompter-area {
     flex: 1;
     position: relative;
-    background-color: #020205;
     display: flex;
     flex-direction: column;
+    background: transparent;
 }
 
 #viewer {
@@ -170,92 +175,100 @@ input[type="range"] {
 #script {
     color: #ffffff;
     font-size: 48px;
-    line-height: 1.7;
+    line-height: 1.6;
     text-align: center;
     white-space: pre-wrap;
     width: 100%;
     word-wrap: break-word;
-    text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.4), 0 0 5px rgba(0,0,0,1);
     transition: transform 0.2s ease;
 }
 
+/* --- Camera Picture-in-Picture UI --- */
 #cameraWindow {
     position: absolute;
-    top: 30px;
-    right: 30px;
-    width: 320px;
-    height: 240px;
-    background-color: #0b0b16;
-    border: 2px solid #232449;
-    border-radius: 12px;
+    top: 30px; right: 30px;
+    width: 320px; height: 240px;
+    background-color: #030308;
+    border: 1px solid #75e3ff;
+    border-radius: 8px;
     display: flex;
     flex-direction: column;
     overflow: hidden;
     z-index: 1000;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.8), 0 0 15px rgba(138, 43, 226, 0.2);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.9), 0 0 20px rgba(117, 227, 255, 0.2);
 }
 
 #cameraHeader {
-    padding: 10px 14px;
-    background-color: #121224;
+    padding: 8px 12px;
+    background-color: rgba(8, 8, 18, 0.95);
     cursor: move;
     display: flex;
     justify-content: space-between;
     align-items: center;
     user-select: none;
-    font-size: 12px;
+    font-size: 10px;
     font-weight: 600;
-    color: #8c92c2;
-    border-bottom: 1px solid #232449;
+    color: #75e3ff;
+    border-bottom: 1px solid #2a2a4a;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 #closeCamera {
     background: transparent;
     border: none;
     color: #ff5555;
-    font-size: 20px;
+    font-size: 18px;
     cursor: pointer;
     line-height: 1;
 }
 
 .video-container {
     flex: 1;
-    background-color: #000000;
+    background-color: #000;
     position: relative;
 }
 
-#camera {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
+#camera { width: 100%; height: 100%; object-fit: cover; }
 
 #resizeHandle {
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    width: 18px;
-    height: 18px;
-    cursor: se-resize;
-    background: linear-gradient(135deg, transparent 50%, #3b3e7a 50%, #3b3e7a 65%, transparent 65%, transparent 80%, #3b3e7a 80%);
+    position: absolute; bottom: 0; right: 0;
+    width: 15px; height: 15px; cursor: se-resize;
+    background: linear-gradient(135deg, transparent 50%, #75e3ff 50%, #75e3ff 65%, transparent 65%, transparent 80%, #75e3ff 80%);
+    opacity: 0.7;
 }
 
-#recordings {
-    background: linear-gradient(0deg, #040408 0%, #0b0b16 100%);
-    padding: 40px;
-    border-top: 1px solid #1f2041;
+/* --- Modal Overlay for Playback --- */
+#recordings-modal {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.85);
+    z-index: 2000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(8px);
+}
+
+.modal-content {
+    background: rgba(8, 8, 18, 0.95);
+    border: 1px solid #3b3e7a;
+    border-radius: 12px;
+    padding: 30px;
     display: flex;
     flex-direction: column;
-    align-items: center;
     gap: 20px;
-    min-height: 300px;
+    align-items: center;
+    max-width: 800px;
+    width: 90%;
+    box-shadow: 0 0 50px rgba(0,0,0,1), 0 0 30px rgba(117, 227, 255, 0.15);
 }
 
 #latestRecording {
-    max-width: 720px;
     width: 100%;
-    border-radius: 12px;
-    border: 2px solid #232449;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.7);
-    background-color: #000000;
+    border-radius: 8px;
+    border: 1px solid #2a2a4a;
+    background: #000;
 }
