@@ -6,21 +6,26 @@
 }
 
 body {
-    background-color: #000000;
+    background-color: #030308;
     color: #e0e6ed;
     height: 100vh;
     width: 100vw;
-    overflow: hidden; /* Fixes the page in place */
+    overflow: hidden; 
     display: flex;
     position: relative;
 }
 
-/* Deep Space Starfield */
-#stars {
+#space-background {
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
     z-index: 0;
     pointer-events: none;
+    overflow: hidden;
+}
+
+.stars {
+    position: absolute;
+    top: -50%; left: -50%; right: -50%; bottom: -50%;
     background-image: 
         radial-gradient(1.5px 1.5px at 10% 20%, #ffffff, rgba(0,0,0,0)),
         radial-gradient(1px 1px at 40% 60%, #c1c5e0, rgba(0,0,0,0)),
@@ -29,121 +34,147 @@ body {
         radial-gradient(2px 2px at 70% 80%, #c1c5e0, rgba(0,0,0,0)),
         radial-gradient(1px 1px at 90% 10%, #75e3ff, rgba(0,0,0,0));
     background-size: 250px 250px;
+    animation: drift 150s linear infinite;
+}
+
+@keyframes drift {
+    0% { transform: rotate(0deg) translate(0, 0); }
+    100% { transform: rotate(5deg) translate(-500px, 500px); }
+}
+
+[class^="meteor-"] {
+    position: absolute;
+    width: 2px;
+    height: 80px;
+    background: linear-gradient(to bottom, rgba(255,255,255,0), #ffffff);
+    transform: rotate(45deg);
+    opacity: 0;
+}
+
+.meteor-1 { top: 10%; left: 80%; animation: shoot 8s linear infinite 2s; }
+.meteor-2 { top: 30%; left: 60%; animation: shoot 12s linear infinite 5s; }
+.meteor-3 { top: 5%; left: 40%; animation: shoot 15s linear infinite 9s; }
+
+@keyframes shoot {
+    0% { transform: translate(0, 0) rotate(45deg); opacity: 1; }
+    15% { transform: translate(-600px, 600px) rotate(45deg); opacity: 0; }
+    100% { opacity: 0; }
 }
 
 .container {
     display: flex;
     width: 100%;
-    height: 100%;
+    height: calc(100% - 30px);
     z-index: 1; 
 }
 
 .controls-sidebar {
-    width: 350px;
-    background: rgba(8, 8, 18, 0.85);
-    backdrop-filter: blur(10px);
-    border-right: 1px solid #2a2a4a;
+    width: 340px;
+    background: rgba(12, 12, 22, 0.75);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border-right: 1px solid rgba(117, 227, 255, 0.1);
     padding: 25px;
     display: flex;
     flex-direction: column;
     gap: 15px;
     overflow-y: auto;
-    box-shadow: 5px 0 25px rgba(0, 0, 0, 0.9);
+    box-shadow: 5px 0 30px rgba(0, 0, 0, 0.8);
 }
+
+.controls-sidebar::-webkit-scrollbar { width: 6px; }
+.controls-sidebar::-webkit-scrollbar-track { background: transparent; }
+.controls-sidebar::-webkit-scrollbar-thumb { background: #3b3e7a; border-radius: 3px; }
 
 h2, h3 {
     color: #ffffff;
-    font-weight: 400;
-    letter-spacing: 2px;
-    text-shadow: 0 0 12px rgba(117, 227, 255, 0.6);
-    text-transform: uppercase;
-    font-size: 1.1rem;
+    font-weight: 500;
+    letter-spacing: 1px;
+    font-size: 1.2rem;
+    margin-bottom: 5px;
 }
 
 .control-group {
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 8px;
 }
 
 label {
-    font-size: 10px;
+    font-size: 11px;
     text-transform: uppercase;
-    letter-spacing: 2px;
+    letter-spacing: 1px;
     color: #8a93c4;
+    font-weight: 600;
 }
 
 textarea {
     width: 100%;
-    height: 250px;
-    background-color: rgba(3, 3, 8, 0.9);
-    border: 1px solid #3b3e7a;
+    height: 200px;
+    background-color: rgba(0, 0, 0, 0.6);
+    border: 1px solid rgba(117, 227, 255, 0.2);
     color: #ffffff;
     padding: 12px;
     border-radius: 8px;
     resize: none;
     font-size: 14px;
+    line-height: 1.5;
 }
 
 textarea:focus {
     outline: none;
     border-color: #75e3ff;
-    box-shadow: 0 0 12px rgba(117, 227, 255, 0.3);
+    box-shadow: 0 0 10px rgba(117, 227, 255, 0.2);
 }
 
 input[type="range"] {
     width: 100%;
     accent-color: #75e3ff;
-    background: #030308;
+    background: #000;
     height: 6px;
     border-radius: 3px;
+    cursor: pointer;
 }
 
 .button-grid {
     display: grid;
     grid-template-columns: 1fr;
     gap: 10px;
+    margin-top: 5px;
 }
 
 .btn {
     padding: 12px;
-    border: 1px solid #3b3e7a;
+    border: none;
     border-radius: 6px;
     font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    font-size: 11px;
+    font-size: 12px;
     cursor: pointer;
-    background-color: rgba(22, 23, 51, 0.8);
-    color: #c1c5e0;
     transition: all 0.2s ease;
+    text-align: center;
 }
 
-.btn:hover:not(:disabled) {
-    background-color: #2a2a4a;
-    color: #ffffff;
-    border-color: #5b5e9a;
-    box-shadow: 0 0 10px rgba(91, 94, 154, 0.4);
-}
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-.btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.btn-action { background-color: #2a2a4a; color: #fff; }
+.btn-action:hover:not(:disabled) { background-color: #3b3e7a; }
+.btn-action.active { background-color: #75e3ff; color: #000; }
 
-.btn-camera { background-color: rgba(49, 18, 71, 0.8); border-color: #7736a8; color: #e8a0ff; }
-.btn-camera:hover:not(:disabled) { background-color: rgba(71, 28, 102, 0.9); box-shadow: 0 0 12px rgba(119, 54, 168, 0.6); color: #ffffff; }
+.btn-camera { background-color: #4a286e; color: #fff; }
+.btn-camera:hover:not(:disabled) { background-color: #633b8f; }
 
-.btn-record { background-color: rgba(82, 12, 22, 0.8); border-color: #b8283d; color: #ff9eab; }
-.btn-record:hover:not(:disabled) { background-color: rgba(112, 20, 34, 0.9); box-shadow: 0 0 12px rgba(184, 40, 61, 0.6); color: #ffffff; }
+.btn-record { background-color: #a82033; color: #fff; font-size: 14px; padding: 15px; }
+.btn-record:hover:not(:disabled) { background-color: #c92a40; box-shadow: 0 0 15px rgba(201, 42, 64, 0.4); }
 
-.btn-download { background-color: rgba(17, 66, 87, 0.8); border-color: #288db8; color: #75e3ff; }
-.btn-download:hover:not(:disabled) { background-color: rgba(25, 89, 117, 0.9); box-shadow: 0 0 12px rgba(40, 141, 184, 0.6); color: #ffffff; }
+.btn-download { background-color: #1b6382; color: #fff; }
+.btn-download:hover:not(:disabled) { background-color: #2581a8; }
 
 .recording-controls {
     display: flex;
     flex-direction: column;
     gap: 10px;
     margin-top: auto;
-    padding-top: 15px;
-    border-top: 1px solid #2a2a4a;
+    padding-top: 20px;
 }
 
 .prompter-area {
@@ -151,7 +182,6 @@ input[type="range"] {
     position: relative;
     display: flex;
     flex-direction: column;
-    background: transparent;
 }
 
 #viewer {
@@ -159,60 +189,59 @@ input[type="range"] {
     height: 100%;
     overflow-y: auto;
     position: relative;
-    padding: 40px;
+    padding: 40px 60px 400px 60px;
+    scroll-behavior: smooth;
 }
+
+#viewer::-webkit-scrollbar { display: none; }
+#viewer { -ms-overflow-style: none; scrollbar-width: none; }
 
 #scriptContainer {
     width: 100%;
-    max-width: 1200px;
+    max-width: 1000px;
     margin: 0 auto;
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
     min-height: 100%;
 }
 
 #script {
     color: #ffffff;
-    font-size: 48px;
-    line-height: 1.6;
+    font-size: 60px;
+    line-height: 1.5;
     text-align: center;
     white-space: pre-wrap;
     width: 100%;
     word-wrap: break-word;
-    text-shadow: 0 0 15px rgba(255, 255, 255, 0.4), 0 0 5px rgba(0,0,0,1);
-    transition: transform 0.2s ease;
+    text-shadow: 0 4px 15px rgba(0,0,0,1);
+    transition: transform 0.2s ease, font-size 0.2s ease;
 }
 
-/* Camera Picture-in-Picture UI */
 #cameraWindow {
-    position: absolute;
+    position: fixed;
     top: 30px; right: 30px;
     width: 320px; height: 240px;
-    background-color: #030308;
-    border: 1px solid #75e3ff;
+    background-color: #000;
+    border: 1px solid rgba(117, 227, 255, 0.4);
     border-radius: 8px;
     display: flex;
     flex-direction: column;
     overflow: hidden;
     z-index: 1000;
-    box-shadow: 0 15px 40px rgba(0,0,0,0.9), 0 0 20px rgba(117, 227, 255, 0.2);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.8);
 }
 
 #cameraHeader {
     padding: 8px 12px;
-    background-color: rgba(8, 8, 18, 0.95);
+    background-color: #111;
     cursor: move;
     display: flex;
     justify-content: space-between;
     align-items: center;
     user-select: none;
-    font-size: 10px;
-    font-weight: 600;
-    color: #75e3ff;
-    border-bottom: 1px solid #2a2a4a;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+    font-size: 11px;
+    color: #aaa;
 }
 
 #closeCamera {
@@ -221,7 +250,6 @@ input[type="range"] {
     color: #ff5555;
     font-size: 18px;
     cursor: pointer;
-    line-height: 1;
 }
 
 .video-container {
@@ -235,26 +263,24 @@ input[type="range"] {
 #resizeHandle {
     position: absolute; bottom: 0; right: 0;
     width: 15px; height: 15px; cursor: se-resize;
-    background: linear-gradient(135deg, transparent 50%, #75e3ff 50%, #75e3ff 65%, transparent 65%, transparent 80%, #75e3ff 80%);
-    opacity: 0.7;
+    background: linear-gradient(135deg, transparent 50%, rgba(117, 227, 255, 0.5) 50%);
 }
 
-/* Modal Overlay */
 #recordings-modal {
     position: fixed;
     top: 0; left: 0;
     width: 100vw; height: 100vh;
-    background: rgba(0,0,0,0.85);
+    background: rgba(0,0,0,0.9);
     z-index: 2000;
     display: flex;
     justify-content: center;
     align-items: center;
-    backdrop-filter: blur(8px);
+    backdrop-filter: blur(10px);
 }
 
 .modal-content {
-    background: rgba(8, 8, 18, 0.95);
-    border: 1px solid #3b3e7a;
+    background: #111;
+    border: 1px solid #333;
     border-radius: 12px;
     padding: 30px;
     display: flex;
@@ -263,13 +289,27 @@ input[type="range"] {
     align-items: center;
     max-width: 800px;
     width: 90%;
-    box-shadow: 0 0 50px rgba(0,0,0,1), 0 0 30px rgba(117, 227, 255, 0.15);
 }
 
 #latestRecording {
     width: 100%;
     max-height: 60vh;
     border-radius: 8px;
-    border: 1px solid #2a2a4a;
     background: #000;
+}
+
+.privacy-footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.8);
+    color: #6a73a4;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    z-index: 100;
+    border-top: 1px solid rgba(117, 227, 255, 0.1);
 }
