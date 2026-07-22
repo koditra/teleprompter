@@ -35,7 +35,6 @@ const state = {
     latestMp4Url: null
 };
 
-// --- TEXT & PROMPTER LOGIC ---
 function updateScriptText() {
     elements.script.innerText = elements.input.value || "Your script will appear here. Paste your text to begin.";
 }
@@ -52,7 +51,6 @@ elements.mirrorBtn.addEventListener('click', () => {
     elements.mirrorBtn.classList.toggle('active');
 });
 
-// --- SCROLL LOGIC ---
 elements.speed.addEventListener('input', () => {
     state.scrollSpeed = parseFloat(elements.speed.value);
 });
@@ -80,7 +78,6 @@ function stopScrolling() {
     cancelAnimationFrame(state.scrollAnimationId);
 }
 
-// User scrolling manually pauses the auto-scroll briefly
 elements.viewer.addEventListener('wheel', () => {
     if (state.isScrolling) {
         stopScrolling();
@@ -88,7 +85,6 @@ elements.viewer.addEventListener('wheel', () => {
     }
 });
 
-// --- CAMERA UI LOGIC ---
 elements.cameraBtn.addEventListener('click', async () => {
     if (state.cameraActive) {
         closeCameraSystem();
@@ -121,7 +117,6 @@ function closeCameraSystem() {
 
 elements.closeCamera.addEventListener('click', closeCameraSystem);
 
-// Window Draggable Logic
 let isDragging = false, dragStartX, dragStartY, initialLeft, initialTop;
 elements.cameraHeader.addEventListener('mousedown', (e) => {
     isDragging = true;
@@ -141,7 +136,6 @@ document.addEventListener('mousemove', (e) => {
 });
 document.addEventListener('mouseup', () => isDragging = false);
 
-// Window Resizable Logic
 let isResizing = false, resizeStartX, resizeStartY, initialWidth, initialHeight;
 elements.resizeHandle.addEventListener('mousedown', (e) => {
     isResizing = true;
@@ -161,7 +155,6 @@ document.addEventListener('mousemove', (e) => {
 });
 document.addEventListener('mouseup', () => isResizing = false);
 
-// --- RECORDING LOGIC ---
 function updateRecordingTimer() {
     const now = Date.now();
     const diff = new Date(now - state.recordingStartTime);
@@ -225,7 +218,6 @@ function stopRecording() {
     elements.recordBtn.style.boxShadow = '';
 }
 
-// --- FFMPEG CONVERSION LOGIC ---
 async function processRecording() {
     elements.recordBtn.disabled = true;
     elements.recordBtn.innerHTML = `Processing Video... 0%`;
@@ -279,11 +271,9 @@ async function processRecording() {
     }
 }
 
-// Modal closing
 elements.closeModal.addEventListener('click', () => {
     elements.recordingsModal.style.display = 'none';
     elements.latestRecording.pause();
 });
 
-// Initializer
 updateScriptText();
